@@ -30,4 +30,27 @@ describe ("effect", () => {
         expect(foo).toBe(12)
         expect(r).toBe('foo')
     })
+    it('scheduler', () => {
+        let dummy;
+        let run:any;
+        const scheduler = jest.fn(() => {
+            run = runner
+        })
+        const obj = reactive({ foo : 1 })
+        const runner = effect(() => {
+            dummy = obj.foo
+        },{ scheduler })
+        // scheduler没有调用，执行effect
+        expect(scheduler).not.toHaveBeenCalled()
+        expect(dummy).toBe(1)
+
+        obj.foo++
+        // 触发依赖时没有调用fn，调用的scheduler
+        expect(scheduler).toHaveBeenCalledTimes(1)
+        expect(dummy).toBe(1)
+
+        run()
+        // 执行run,调用fn
+        expect(dummy).toBe(2)
+    })
 })
