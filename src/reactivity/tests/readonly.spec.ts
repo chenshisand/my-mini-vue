@@ -13,8 +13,12 @@ describe("readonly", () => {
     expect(wrapped).not.toBe(original);
     expect(wrapped.foo).toBe(1);
     expect(isReactive(observed)).toBe(true);
+    expect(isReactive(observed.bar)).toBe(true);
+
     expect(isReactive(original)).toBe(false);
     expect(isReadonly(wrapped)).toBe(true);
+    expect(isReadonly(wrapped.bar)).toBe(true);
+
     expect(isReadonly(original)).toBe(false);
 
     expect(isReadonly(observed)).toBe(false);
