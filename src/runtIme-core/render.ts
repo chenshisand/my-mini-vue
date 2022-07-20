@@ -5,6 +5,7 @@ export function render(vnode, container) {
   path(vnode, container);
 }
 function path(vnode, container) {
+  // processElement(vnode, container);
   processComponent(vnode, container);
 }
 function processComponent(vnode: any, container: any) {
