@@ -1,16 +1,23 @@
+import { proxyRefs } from "../reactivity";
 import { shallowReadonly } from "../reactivity/reactive";
 import { emit } from "./componentEmit";
 import { initProps } from "./componentProps";
 import { PulicInstanceProxyHandlers } from "./componentPulicInstance";
 import { initSlots } from "./componentSlots";
 
-export function createComponentInstance(vnode) {
+export function createComponentInstance(vnode, parent) {
+  console.log(parent);
+
   const component = {
     vnode,
     type: vnode.type,
     setUpState: {},
     props: {},
     slots: {},
+    provides: parent ? parent.provides : {},
+    Mounted: false,
+    parent,
+    subTree: {},
     emit: () => {},
   };
   component.emit = emit.bind(null, component) as any;
@@ -40,7 +47,7 @@ function setupStatefulComponent(instance: any) {
 }
 function handleSetupResult(instance, setUpResult: any) {
   if (typeof setUpResult === "object") {
-    instance.setUpState = setUpResult;
+    instance.setUpState = proxyRefs(setUpResult);
   }
   finishComponentSetup(instance);
 }
