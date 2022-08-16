@@ -24,8 +24,9 @@ function remove(child) {
 function setElementText(el, text) {
   el.textContent = text;
 }
-function insert(el, parent) {
-  parent.append(el);
+function insert(el, parent, ancher) {
+  // parent.append(el);
+  parent.insertBefore(el, ancher || null);
 }
 const renderer: any = createRenderer({
   createElement,
