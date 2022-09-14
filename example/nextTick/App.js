@@ -7,7 +7,7 @@ import {
 export const App = {
   name: "App",
   render() {
-    const button = h("button", { onClick: this.onClick }, "update");
+    const button = h("button", { onClick: this.onClick }, "updata");
     const p = h("p", {}, "count" + this.count);
     return h("div", {}, [button, p]);
   },

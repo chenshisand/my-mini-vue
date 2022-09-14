@@ -1,4 +1,4 @@
-export function shouldUpdateComponent(prevVnode, nextVnode) {
+export function shouldUpdataComponent(prevVnode, nextVnode) {
   const { props: prevProps } = prevVnode;
   const { props: nextProps } = nextVnode;
 

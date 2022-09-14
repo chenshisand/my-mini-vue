@@ -2,7 +2,7 @@ import { effect } from "../reactivity/effect";
 import { EMPTY_OBJ } from "../shared";
 import { shapeFlags } from "../shared/shapeFlags";
 import { createComponentInstance, setupComponent } from "./component";
-import { shouldUpdateComponent } from "./componentUpdateUtils";
+import { shouldUpdataComponent } from "./componentUpdataUtils";
 import { createAppApi } from "./createApp";
 import { queueJobs } from "./scheduler";
 import { Fragment, Text } from "./vnode";
@@ -265,15 +265,15 @@ export function createRenderer(options) {
     if (!n1) {
       mountComponent(n2, container, parentComponent, anchor);
     } else {
-      upDateComponent(n1, n2);
+      upDataComponent(n1, n2);
     }
   }
-  function upDateComponent(n1, n2) {
+  function upDataComponent(n1, n2) {
     const instance = (n2.component = n1.component);
 
-    if (shouldUpdateComponent(n1, n2)) {
+    if (shouldUpdataComponent(n1, n2)) {
       instance.next = n2;
-      instance.update();
+      instance.updata();
     } else {
       n2.el = n1.el;
       instance.vnode = n2;
@@ -293,7 +293,7 @@ export function createRenderer(options) {
     setupRenderEffect(instance, initialVnode, container, anchor);
   }
   function setupRenderEffect(instance, initialVnode, container, anchor) {
-    instance.update = effect(
+    instance.updata = effect(
       () => {
         if (!instance.isMounted) {
           console.log("init");
@@ -304,12 +304,12 @@ export function createRenderer(options) {
           initialVnode.el = subTree.el;
           instance.isMounted = true;
         } else {
-          console.log("update");
+          console.log("updata");
 
           const { next, vnode } = instance;
           if (next) {
             next.el = vnode.el;
-            updateComponentPreRender(instance, next);
+            updataComponentPreRender(instance, next);
           }
           const { proxy } = instance;
           const subTree = instance.render.call(proxy);
@@ -320,13 +320,13 @@ export function createRenderer(options) {
       },
       {
         scheduler() {
-          console.log("update - scheduler");
-          queueJobs(instance.update);
+          console.log("updata - scheduler");
+          queueJobs(instance.updata);
         },
       }
     );
   }
-  function updateComponentPreRender(instance, nextVnode) {
+  function updataComponentPreRender(instance, nextVnode) {
     instance.vnode = nextVnode;
     instance.next = null;
     instance.props = nextVnode.props;
