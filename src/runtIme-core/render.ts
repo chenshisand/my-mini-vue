@@ -2,6 +2,7 @@ import { effect } from "../reactivity/effect";
 import { EMPTY_OBJ } from "../shared";
 import { shapeFlags } from "../shared/shapeFlags";
 import { createComponentInstance, setupComponent } from "./component";
+import { shouldUpdateComponent } from "./componentUpdateUtils";
 import { createAppApi } from "./createApp";
 import { Fragment, Text } from "./vnode";
 export function createRenderer(options) {
@@ -260,7 +261,22 @@ export function createRenderer(options) {
     parentComponent,
     anchor
   ) {
-    mountComponent(n2, container, parentComponent, anchor);
+    if (!n1) {
+      mountComponent(n2, container, parentComponent, anchor);
+    } else {
+      upDataComponent(n1, n2);
+    }
+  }
+  function upDataComponent(n1, n2) {
+    const instance = (n2.component = n1.component);
+
+    if (shouldUpdateComponent(n1, n2)) {
+      instance.next = n2;
+      instance.updata();
+    } else {
+      n2.el = n1.el;
+      instance.vnode = n2;
+    }
   }
   function mountComponent(
     initialVnode: any,
@@ -268,12 +284,15 @@ export function createRenderer(options) {
     parentComponent,
     anchor
   ) {
-    const instance = createComponentInstance(initialVnode, parentComponent);
+    const instance = (initialVnode.component = createComponentInstance(
+      initialVnode,
+      parentComponent
+    ));
     setupComponent(instance);
     setupRenderEffect(instance, initialVnode, container, anchor);
   }
   function setupRenderEffect(instance, initialVnode, container, anchor) {
-    effect(() => {
+    instance.updata = effect(() => {
       if (!instance.isMounted) {
         console.log("init");
 
@@ -285,6 +304,11 @@ export function createRenderer(options) {
       } else {
         console.log("update");
 
+        const { next, vnode } = instance;
+        if (next) {
+          next.el = vnode.el;
+          updataComponentPreRender(instance, next);
+        }
         const { proxy } = instance;
         const subTree = instance.render.call(proxy);
         const prevSubTree = instance.subTree;
@@ -293,7 +317,11 @@ export function createRenderer(options) {
       }
     });
   }
-
+  function updataComponentPreRender(instance, nextVnode) {
+    instance.vnode = nextVnode;
+    instance.next = null;
+    instance.props = nextVnode.props;
+  }
   function processFragment(
     n1,
     n2: any,
