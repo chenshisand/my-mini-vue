@@ -4,6 +4,7 @@ import { shapeFlags } from "../shared/shapeFlags";
 import { createComponentInstance, setupComponent } from "./component";
 import { shouldUpdateComponent } from "./componentUpdateUtils";
 import { createAppApi } from "./createApp";
+import { queueJobs } from "./scheduler";
 import { Fragment, Text } from "./vnode";
 export function createRenderer(options) {
   const {
@@ -264,15 +265,15 @@ export function createRenderer(options) {
     if (!n1) {
       mountComponent(n2, container, parentComponent, anchor);
     } else {
-      upDataComponent(n1, n2);
+      upDateComponent(n1, n2);
     }
   }
-  function upDataComponent(n1, n2) {
+  function upDateComponent(n1, n2) {
     const instance = (n2.component = n1.component);
 
     if (shouldUpdateComponent(n1, n2)) {
       instance.next = n2;
-      instance.updata();
+      instance.update();
     } else {
       n2.el = n1.el;
       instance.vnode = n2;
@@ -292,32 +293,40 @@ export function createRenderer(options) {
     setupRenderEffect(instance, initialVnode, container, anchor);
   }
   function setupRenderEffect(instance, initialVnode, container, anchor) {
-    instance.updata = effect(() => {
-      if (!instance.isMounted) {
-        console.log("init");
+    instance.update = effect(
+      () => {
+        if (!instance.isMounted) {
+          console.log("init");
 
-        const { proxy } = instance;
-        const subTree = (instance.subTree = instance.render.call(proxy));
-        patch(null, subTree, container, instance, anchor);
-        initialVnode.el = subTree.el;
-        instance.isMounted = true;
-      } else {
-        console.log("update");
+          const { proxy } = instance;
+          const subTree = (instance.subTree = instance.render.call(proxy));
+          patch(null, subTree, container, instance, anchor);
+          initialVnode.el = subTree.el;
+          instance.isMounted = true;
+        } else {
+          console.log("update");
 
-        const { next, vnode } = instance;
-        if (next) {
-          next.el = vnode.el;
-          updataComponentPreRender(instance, next);
+          const { next, vnode } = instance;
+          if (next) {
+            next.el = vnode.el;
+            updateComponentPreRender(instance, next);
+          }
+          const { proxy } = instance;
+          const subTree = instance.render.call(proxy);
+          const prevSubTree = instance.subTree;
+          instance.subTree = subTree;
+          patch(prevSubTree, subTree, container, instance, anchor);
         }
-        const { proxy } = instance;
-        const subTree = instance.render.call(proxy);
-        const prevSubTree = instance.subTree;
-        instance.subTree = subTree;
-        patch(prevSubTree, subTree, container, instance, anchor);
+      },
+      {
+        scheduler() {
+          console.log("update - scheduler");
+          queueJobs(instance.update);
+        },
       }
-    });
+    );
   }
-  function updataComponentPreRender(instance, nextVnode) {
+  function updateComponentPreRender(instance, nextVnode) {
     instance.vnode = nextVnode;
     instance.next = null;
     instance.props = nextVnode.props;
