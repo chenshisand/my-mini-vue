@@ -1,6 +1,8 @@
-export function transfrom(root, options) {
+export function transfrom(root, options = {}) {
   const context = createTransfromContext(root, options);
   traverseNode(root, context);
+
+  createRootCodegen(root);
 }
 function traverseNode(node, context) {
   const nodeTransforms = context.nodeTransforms;
@@ -25,4 +27,7 @@ function createTransfromContext(root: any, options: any) {
     nodeTransforms: options.nodeTransforms || [],
   };
   return context;
+}
+function createRootCodegen(root: any) {
+  root.codegenNode = root.children[0];
 }
