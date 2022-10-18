@@ -113,8 +113,8 @@ function createCodegenContext() {
 }
 function geninterpolation(context: any, node: any) {
   const { push, helper } = context;
-  push(`${helper(TO_DISPLAY_STRING)}(`);
-  genNode(context, node.content);
+  push(`${helperNameMap[TO_DISPLAY_STRING]}(`);
+  genNode(node.content, context);
   push(`)`);
 }
 function genExpression(context: any, node: any) {
