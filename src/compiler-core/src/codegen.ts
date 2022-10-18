@@ -1,5 +1,10 @@
+import { isString } from "../../shared";
 import { NodeTypes } from "./ast";
-import { helperNameMap, TO_DISPLAY_STRING } from "./runtimeHelpers";
+import {
+  CREATE_ELEMENT_VNODE,
+  helperNameMap,
+  TO_DISPLAY_STRING,
+} from "./runtimeHelpers";
 
 export function generate(ast) {
   const context = createCodegenContext();
@@ -9,7 +14,7 @@ export function generate(ast) {
 
   const functionName = "render";
   const args = ["_ctx", "_cache"];
-  const signature = args.join(",");
+  const signature = args.join(", ");
   console.log(ast);
   push(` function ${functionName} (${signature}) {`);
   push("return ");
@@ -30,9 +35,51 @@ function genNode(node: any, context: any) {
     case NodeTypes.SIMPLE_EXPRESSION:
       genExpression(context, node);
       break;
+    case NodeTypes.ELEMENT:
+      genElement(context, node);
+      break;
+    case NodeTypes.COMPOUND_EXPRESSION:
+      genCompoundExpression(context, node);
+      break;
     default:
       break;
   }
+}
+function genCompoundExpression(context: any, node: any) {
+  const children = node.children;
+  const { push } = context;
+  for (let i = 0; i < children.length; i++) {
+    const child = children[i];
+    if (isString(child)) {
+      push(child);
+    } else {
+      genNode(child, context);
+    }
+  }
+}
+function genElement(context: any, node: any) {
+  const { push, helper } = context;
+  const { tag, children, props } = node;
+  push(`${helper(CREATE_ELEMENT_VNODE)}(`);
+  genNodeList(genNullable([tag, props, children]), context);
+  push(")");
+}
+function genNodeList(nodes, context) {
+  const { push } = context;
+  for (let i = 0; i < nodes.length; i++) {
+    const node = nodes[i];
+    if (isString(node)) {
+      push(node);
+    } else {
+      genNode(node, context);
+    }
+    if (i < nodes.length - 1) {
+      push(", ");
+    }
+  }
+}
+function genNullable(args: any) {
+  return args.map((arg) => arg || "null");
 }
 function genText(context: any, node: any) {
   const { push } = context;

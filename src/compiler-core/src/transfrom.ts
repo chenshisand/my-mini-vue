@@ -10,22 +10,26 @@ export function transfrom(root, options = {}) {
 }
 function traverseNode(node, context) {
   const nodeTransforms = context.nodeTransforms;
+  const exitFns: any = [];
   for (let i = 0; i < nodeTransforms.length; i++) {
     const transformOptions = nodeTransforms[i];
-    transformOptions(node);
+    const onExit = transformOptions(node, context);
+    if (onExit) exitFns.push(onExit);
   }
   switch (node.type) {
     case NodeTypes.INTERPOLATION:
       context.helper(TO_DISPLAY_STRING);
       break;
     case NodeTypes.ROOT:
-      traverseChildren(node, context);
-      break;
     case NodeTypes.ELEMENT:
       traverseChildren(node, context);
       break;
     default:
       break;
+  }
+  let i = exitFns.length;
+  while (i--) {
+    exitFns[i]();
   }
 }
 function traverseChildren(node, context) {
@@ -49,5 +53,10 @@ function createTransfromContext(root: any, options: any) {
   return context;
 }
 function createRootCodegen(root: any) {
-  root.codegenNode = root.children[0];
+  const child = root.children[0];
+  if (child.type === NodeTypes.ELEMENT) {
+    root.codegenNode = child.codegenNode;
+  } else {
+    root.codegenNode = root.children[0];
+  }
 }
