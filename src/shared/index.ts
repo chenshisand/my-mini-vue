@@ -1,6 +1,7 @@
 export const extend = Object.assign;
 export const EMPTY_OBJ = {};
 
+export * from "./toDisplayString";
 export const isObject = (value) => {
   return value !== null && typeof value === "object";
 };
