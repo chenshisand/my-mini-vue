@@ -6,3 +6,5 @@ export { createRenderer } from "./render";
 export { provide, inject } from "./apiInjdect";
 export { nextTick } from "./scheduler";
 export { toDisplayString } from "../shared";
+
+export * from "../reactivity";
