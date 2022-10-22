@@ -1,4 +1,5 @@
 const queue: any = [];
+const activePreFlushCbs: any[] = [];
 let p = Promise.resolve();
 let isFlushPenging = false;
 export function queueJobs(job) {
@@ -7,7 +8,11 @@ export function queueJobs(job) {
   }
   queueFlush();
 }
-export function nextTick(fn) {
+export function queuePreFlushCb(job) {
+  activePreFlushCbs.push(job);
+  queueFlush();
+}
+export function nextTick(fn?) {
   return fn ? p.then(fn) : p;
 }
 function queueFlush() {
@@ -17,11 +22,18 @@ function queueFlush() {
 }
 function flushJobs() {
   isFlushPenging = false;
+
+  flushPreFlushCbs();
   let job;
   console.log(job, "job");
   while ((job = queue.shift())) {
     console.log(job, "job2");
 
     job && job();
+  }
+}
+function flushPreFlushCbs() {
+  for (let i = 0; i < activePreFlushCbs.length; i++) {
+    activePreFlushCbs[i]();
   }
 }
